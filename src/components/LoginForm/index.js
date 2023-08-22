@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import emailValidator from 'email-validator';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -10,41 +11,52 @@ import Typography from '@mui/material/Typography';
 import logo from '../../assets/logo.svg';
 
 
-export default function LoginForm() {
-  const [showAlert, setShowAlert] = useState(false);
+export const validatePassword = (password) => {
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  return passwordPattern.test(password);
+};
+
+
+
+ export default function LoginForm() {
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const [successAlert, setSuccessAlert] = useState(false);
+
   const validateForm = (event) => {
-    event.preventDefault()
+    event.preventDefault();
     const data = new FormData(event.currentTarget);
     const email = data.get('email');
     const password = data.get('password');
 
-    // Add validation code here
+    const isEmailValid = emailValidator.validate(email);
+    const isPasswordValid = validatePassword(password);
 
-  }
+    setEmailError(!isEmailValid);
+    setPasswordError(!isPasswordValid);
+
+    if (isEmailValid && isPasswordValid) {
+      setSuccessAlert(true);
+    }
+  };
+
+  
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
     validateForm(event);
-    setShowAlert("Login Successful");
   };
 
   return (
     <>
-      {showAlert &&
-        <Snackbar
-          open={showAlert}
-          autoHideDuration={6000}
-          onClose={() => setShowAlert(false)}
-          message={showAlert}
-        >
-          <Alert>{showAlert}</Alert>
-        </Snackbar>
-      }
+      <Snackbar
+        open={successAlert}
+        autoHideDuration={6000}
+        onClose={() => setSuccessAlert(false)}
+        message="Login Successful"
+      >
+        <Alert severity="success">Login Successful</Alert>
+      </Snackbar>
       <Grid
         item
         xs={false}
@@ -87,6 +99,8 @@ export default function LoginForm() {
               name="email"
               autoComplete="email"
               autoFocus
+              error={emailError}
+              helperText={emailError ? 'Invalid email format' : ''}
             />
             <TextField
               margin="normal"
@@ -97,6 +111,12 @@ export default function LoginForm() {
               type="password"
               id="password"
               autoComplete="current-password"
+              error={passwordError}
+              helperText={
+                passwordError
+                  ? 'Password should be at least 8 characters long and contain at least 1 uppercase letter, 1 lowercase letter, and 1 special character.'
+                  : ''
+              }
             />
             <Button
               type="submit"
@@ -112,3 +132,5 @@ export default function LoginForm() {
     </>
   );
 }
+
+
